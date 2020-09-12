@@ -1,0 +1,43 @@
+from IPython.display import display
+import pandas as pd
+import numpy as np
+import pymysql
+
+data = pd.read_excel('db_score.xlsx',
+            sheet_name = 'Sheet1',
+            header = 0,
+            dtype = {'sno':np.int64,'attendance':float,
+                     'homework':float,'discussion':np.int64,'midterm':float,'final':float,
+                     'score':float,'grade':str})
+student_df = pd.DataFrame(data)
+
+#engine = create_engine('mysql://root:1234@localhost:3307/student-db', encoding='utf-8')
+#conn = engine.connect()
+
+#display(student_df)
+
+
+student_db = pymysql.connect(
+            user='root',
+            passwd='1234',
+            host='127.0.0.1',
+            db='student-db',
+            port=3307,
+            charset='utf8')
+#select 하는 것을 비롯해서
+#sql문 사용법을 알아야 함
+cursor = student_db.cursor(pymysql.cursors.DictCursor)
+student_df.to_sql('student_table', engine, if_exists='replace')
+
+sql = "SELECT sno, midterm, final FROM student_table WHERE midterm > 20 AND final > 20 ORDER BY sno;"
+cursor.execute(sql)
+result = cursor.fetchall()
+
+#display(result)
+
+for result in result:
+    print(result)
+    #print(result['sno'], result['midterm'], result['final'])
+    
+engine.dispose()
+student_db.close()
